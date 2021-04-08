@@ -6,33 +6,14 @@ import {useLocalStorageState} from '../utils'
 
 const INITIAL_SQUARES = Array(9).fill(null)
 
-function Board() {
-  const [squares, setSquares] = useLocalStorageState('squares', INITIAL_SQUARES)
-  const nextValue = calculateNextValue(squares)
-  const winner = calculateWinner(squares)
-  const status = calculateStatus(winner, squares, nextValue)
-
-  // This is the function your square click handler will call. `square` should
-  // be an index. So if they click the center square, this will be `4`.
-  function selectSquare(square) {
-    if (winner || squares[square]) {
-      return
-    }
-
-    // 🦉 It's typically a bad idea to mutate or directly change state in React.
-    // Doing so can lead to subtle bugs that can easily slip into production.
-    const squaresCopy = [...squares]
-    squaresCopy[square] = nextValue
-    setSquares(squaresCopy)
-  }
-
-  function restart() {
-    setSquares(INITIAL_SQUARES)
-  }
-
+/**
+ * Board Component
+ * Render the 3x3 board with the X and O played
+ */
+function Board({onClick, squares}) {
   function renderSquare(i) {
     return (
-      <button className="square" onClick={() => selectSquare(i)}>
+      <button className="square" onClick={() => onClick(i)}>
         {squares[i]}
       </button>
     )
@@ -40,7 +21,6 @@ function Board() {
 
   return (
     <div>
-      <div className="status">{status}</div>
       <div className="board-row">
         {renderSquare(0)}
         {renderSquare(1)}
@@ -56,23 +36,95 @@ function Board() {
         {renderSquare(7)}
         {renderSquare(8)}
       </div>
-      <button className="restart" onClick={restart}>
-        restart
-      </button>
     </div>
   )
 }
 
+function MoveButton({step, isCurrent, onClick}) {
+  const isCurrentPrefix = isCurrent ? '(current)' : ''
+  return (
+    <li>
+      <button disabled={isCurrent} onClick={() => onClick(step)}>
+        {step === 0
+          ? `Go to game start ${isCurrentPrefix}`
+          : `Go to move #${step} ${isCurrentPrefix}`}
+      </button>
+    </li>
+  )
+}
+
+/**
+ * Game component
+ */
 function Game() {
+  const [history, setHistory] = useLocalStorageState('tic-tac-toe:history', [
+    INITIAL_SQUARES,
+  ])
+  const [currentStep, setCurrentStep] = useLocalStorageState(
+    'tic-tac-toe:step',
+    0,
+  )
+
+  const squares = history[currentStep]
+  const winner = calculateWinner(squares)
+  const nextValue = calculateNextValue(squares)
+  const status = calculateStatus(winner, squares, nextValue)
+
+  function selectSquare(square) {
+    if (winner || squares[square]) {
+      return
+    }
+
+    // 🦉 It's typically a bad idea to mutate or directly change state in React.
+    // Doing so can lead to subtle bugs that can easily slip into production.
+    const squaresCopy = [...squares]
+    squaresCopy[square] = nextValue
+    let newHistory =
+      currentStep < history.length - 1
+        ? [...history.slice(0, currentStep + 1), squaresCopy]
+        : [...history, squaresCopy]
+
+    setHistory(newHistory)
+    setCurrentStep(currentStep + 1)
+  }
+
+  function restart() {
+    setHistory([INITIAL_SQUARES])
+    setCurrentStep(0)
+  }
+
+  function goToStep(index) {
+    setCurrentStep(index)
+  }
+
   return (
     <div className="game">
       <div className="game-board">
-        <Board />
+        <Board onClick={selectSquare} squares={squares} />
+        <button className="restart" onClick={restart}>
+          restart
+        </button>
+      </div>
+      <div className="game-info">
+        <div>{status}</div>
+        <ol>
+          {history.map((_, idx) => (
+            <MoveButton
+              key={idx}
+              step={idx}
+              isCurrent={idx === currentStep}
+              onClick={goToStep}
+            />
+          ))}
+        </ol>
       </div>
     </div>
   )
 }
 
+/**
+ * Utils functions
+ */
 function calculateStatus(winner, squares, nextValue) {
   return winner
     ? `Winner: ${winner}`
@@ -105,6 +157,9 @@ function calculateWinner(squares) {
   return null
 }
 
+/**
+ * Main app
+ */
 function App() {
   return <Game />
 }
