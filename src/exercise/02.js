@@ -3,7 +3,7 @@
 
 import * as React from 'react'
 
-function useLocalStorage(
+export function useLocalStorage(
   key,
   defaultValue = '',
   {serialize = JSON.stringify, deserialize = JSON.parse} = {},

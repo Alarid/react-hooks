@@ -2,9 +2,12 @@
 // http://localhost:3000/isolated/exercise/04.js
 
 import * as React from 'react'
+import {useLocalStorageState} from '../utils'
+
+const INITIAL_SQUARES = Array(9).fill(null)
 
 function Board() {
-  const [squares, setSquares] = React.useState(Array(9).fill(null))
+  const [squares, setSquares] = useLocalStorageState('squares', INITIAL_SQUARES)
   const nextValue = calculateNextValue(squares)
   const winner = calculateWinner(squares)
   const status = calculateStatus(winner, squares, nextValue)
@@ -24,7 +27,7 @@ function Board() {
   }
 
   function restart() {
-    setSquares(Array(9).fill(null))
+    setSquares(INITIAL_SQUARES)
   }
 
   function renderSquare(i) {
