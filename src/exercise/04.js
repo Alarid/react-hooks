@@ -40,14 +40,17 @@ function Board({onClick, squares}) {
   )
 }
 
+/**
+ * Button representing a move in the game history
+ * Clickable to go back to this step
+ */
 function MoveButton({step, isCurrent, onClick}) {
-  const isCurrentPrefix = isCurrent ? '(current)' : ''
+  const isCurrentPrefix = isCurrent ? '(current)' : null
+  const description = step === 0 ? `Go to game start` : `Go to move #${step}`
   return (
     <li>
       <button disabled={isCurrent} onClick={() => onClick(step)}>
-        {step === 0
-          ? `Go to game start ${isCurrentPrefix}`
-          : `Go to move #${step} ${isCurrentPrefix}`}
+        {description} {isCurrentPrefix}
       </button>
     </li>
   )
@@ -79,12 +82,9 @@ function Game() {
     // Doing so can lead to subtle bugs that can easily slip into production.
     const squaresCopy = [...squares]
     squaresCopy[square] = nextValue
-    let newHistory =
-      currentStep < history.length - 1
-        ? [...history.slice(0, currentStep + 1), squaresCopy]
-        : [...history, squaresCopy]
 
-    setHistory(newHistory)
+    const newHistory = history.slice(0, currentStep + 1)
+    setHistory([...newHistory, squaresCopy])
     setCurrentStep(currentStep + 1)
   }
 
