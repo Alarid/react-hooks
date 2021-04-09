@@ -72,6 +72,7 @@ function App() {
           onReset={() => {
             setPokemonName('')
           }}
+          resetKeys={[pokemonName]}
         >
           <PokemonInfo pokemonName={pokemonName} />
         </ErrorBoundary>
